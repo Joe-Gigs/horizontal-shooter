@@ -28,7 +28,6 @@ function _init()
 	enemy_bullets={}
 
 	enemies={}
-	bosses={}
 
 	shields={}
 
@@ -37,8 +36,6 @@ function _init()
 	shield.x=ship.x 
 	shield.y=ship.y
 	
-	powerups={}
-
 	stars = {}
 
 	stars.on=false
@@ -52,6 +49,8 @@ function _init()
 
 		--time of temporary invincibility 
 		hidden_counter = 0
+
+		actor = {}
 
 end
 
@@ -202,12 +201,6 @@ end
 	-- 	make_stars(10)
 	-- end	
 
-	for p in all(powerups) do
-		if ship.x == p.x then
-			ship.shielded = true
-		end
-	end
-	--add_shield_to_ship()
 
 	if ship.hidden == true then
 		ship.w = 1
@@ -238,15 +231,6 @@ function _draw()
 
 	spr(ship.sp, ship.sx, ship.sy, ship.w, ship.w)
 
-
-	-- if ship.hidden == false then
-	-- 	spr(ship.sp, ship.x, ship.y, 1, 1)
-	-- end
-
-	--for shields, use later
-	--spr(shield.sp, ship.x+5, ship.y+1.3)
-
-
 	for b in all(bullets) do
 		spr(b.sp,b.x,b.y)
 	end
@@ -259,18 +243,31 @@ function _draw()
 	for s in all(stars) do
 		spr(s.sp, s.x, s.y)
 	end
-	-- for b in all(bosses) do
-	-- 	spr(b.sp, b.x, b.y, 2, 2)
-	-- end
-	for p in all(powerups) do
-		spr(p.sp, p.x, p.y)
-	end
-
-
 end
 -------------------------------------------------------------------------------
 --custom functions
 -------------------------------------------------------------------------------
+function make_actor(x, y)
+ a={}
+ a.x = x
+ a.y = y
+ a.dx = 0
+ a.dy = 0
+ a.spr = 16
+ a.frame = 0
+ a.t = 0
+ a.inertia = 0.6
+ a.bounce  = 1
+ a.frames=2
+ 
+ a.w = 0.4
+ a.h = 0.4
+ 
+ add(actor,a)
+ 
+ return a
+end
+
 function fire()
 	local b = {
 		sp=3,
@@ -319,40 +316,21 @@ function spawn_basic_enemy()
 	add(enemies,alien)
 end
 
-function spawn_midlevel_enemy()
-	mid_guy = {}
-	mid_guy.sp = 36
-	mid_guy.x = 90
-	mid_guy.y = 20
-
-	add(bosses, mid_guy)
-
-end
-
 function make_enemies(num)
  for i=0,num do
   spawn_basic_enemy()
  end
 end
 
-function make_stars(num)
-	for i=0,num do
-		create_star()
-	end
-end
-
 function update_enemies(e)
 	e.tick -=1
 	e.x -= 0.8
+
 	if e.tick<=0 then
 		if rnd() > 0.2 then
 			enemy_fire()
 			end
 		end
-end
-
-function update_stars(s)
-	s.x -= 2
 end
 
 ---custom rng function
@@ -369,17 +347,14 @@ function create_star()
 	add(stars, star)
 end
 
-function create_item()
-	i = {}
-	i.sp = 13
-	i.x = 30
-	i.y = 30
-
-	add(powerups, i)
+function make_stars(num)
+	for i=0,num do
+		create_star()
+	end
 end
 
-function add_shield_to_ship()
-	
+function update_stars(s)
+	s.x -= 2
 end
 
 function ship_hide_countdown()
@@ -416,8 +391,6 @@ if ship.score >= 10 then
 	end
 	
 end
-
-
 
 ----------------------------------------------------
 --collision
