@@ -8,506 +8,537 @@ t=0
 --p8 functions
 -------------------------------------------------------------------------------
 function _init()
-	ship=make_actor(0, 60)
-	ship.sp=74
-	ship.w=2
-	ship.h=2
-	ship.speed=0.8
-	ship.health=100
-	ship.score=0
-	ship.weapon=3
-	ship.shielded=false
-	ship.hidden=false
-	ship.box={x1=0,y1=0,x2=7,y2=7}
+  game_state="select"
 
-	--camera values
-	cx,cy=0,0
+  ship=make_actor(0, 60)
+  ship.sp=74
+  ship.w=2
+  ship.h=2
+  ship.speed=0.8
+  ship.health=100
+  ship.score=0
+  ship.weapon=3
+  ship.shielded=false
+  ship.hidden=false
+  ship.box={x1=0,y1=0,x2=7,y2=7}
 
-	bullets = {}
-	enemy_bullets={}
+  --camera values
+  cx,cy=0,0
 
-	basic_enemies={}
-	mid_enemies={}
-	
-	stars = {}
+  bullets = {}
+  enemy_bullets={}
 
-	stars.on=false
+  basic_enemies={}
+  mid_enemies={}
 
-	items = {}
+  stars = {}
 
-	roll_dice=false
-	
+  stars.on=false
 
-		--time of temporary invincibility 
-	hidden_counter = 0
+  items = {}
 
-	actor = {}
-	enemies={}
+  roll_dice=false
 
-	bgposx=0
-	gamespeed=1
+
+  --time of temporary invincibility
+  hidden_counter = 0
+
+  actor = {}
+  enemies={}
+
+  bgposx=0
+  gamespeed=1
+  menu={}
 end
 
---todo: clean up this function, getting bloated :(
+--refactorig, will handle collisions/interaction between actors/assets
+--looking good!
 function _update()
-	t=t+1
-	
-	alien_movement()
-	star_movement()
-	ship_hide_countdown()
-	camera_level()
-	
-	for b in all(bullets) do
-		b.x-=b.dx
-		if b.x < 0 or b.x > 128 or
-			b.y < 0 or b.y > 128 then
-			del(bullets, b)
-	end
-
---destroy enemies
-	for e in all(enemies) do 
-		if coll(b,e) then
-			del(enemies, e)
-			ship.score += 1
-			end
-		end
-	end
-
-	for eb in all(enemy_bullets) do
-		eb.x+=eb.dx
-		if eb.x < 0 or eb.x > 128 or
-			eb.y < 0 or eb.y > 128 then
-			del(enemy_bullets, eb)
-		end
-
-		if coll(eb,ship) then
-			if ship.shielded == false and ship.hidden == false then
-				ship.health -=1
-			end
-
-			if ship.shielded == true then
-				ship.health -=0.2
-			end
-
-			if ship.hidden == true then
-				ship.health -= 0
-			end
-		end
-
-		--enemies explode into lasers
-			--not sure if i still like this idea
-		for e in all(enemies) do 
-		if coll(eb,e) then
-			del(enemies, e)
-			end
-		end
-	end
-
-	for e in all(enemies) do
-		if coll(ship, e) then
-			if ship.shielded == false and ship.hidden == false then
-			ship.health -=1
-		end
-	end
-
-		if ship.shielded == true then
-			ship.health -=0.2
-		end
-
-		if ship.hidden == true then
-			ship.health -=0
-		end
-	end
----------------------------------------pick up items
-	for i in all(items) do
-		if coll(i, ship) then
-			item_props(i)
-			del(items, i)
-		end
-	end
-
-for e in all(enemies) do
-	if e.x < 0 or e.x > 128 or
-		e.y < 0 or e.y > 128 then
-		del(enemies, e)
-	end
-end
-
-for s in all(stars) do
-	if s.x < 0 or s.x > 128 or
-		s.y < 0 or s.y > 128 then
-		del(stars, s)
-	end
-end
-
-if ship.hidden == true then
-	if(t%6<3) then
-		ship.sp=1
- 	else
-		ship.sp=2
- 	end
-
- else
- 	if(t%6<3) then
- 		ship.sp=74
- 	else
- 		ship.sp=76
- 	end
-end
-
-	if btn(0) then
-		ship.x-=1.5 
-	end
-	if btn(1) then
-		ship.x+=1.5
-		--shield.x += ship.speed
-	end
-	if btn(2) then
-		ship.y-=1.5
-
-		if ship.hidden==false then
-			ship.y-=1.8
-		end
-	end
-	if btn(3) then
-		if ship.hidden == false then
-			ship.sp = 103
-		end
-
-		ship.y+=1.7
-
-		if ship.hidden==false then
-			ship.y+=1.8
-		end
-	end
-	if btnp(4) then
-		fire()
-	end
-
-	if btnp(5) then
-		
-		if ship.hidden==false then
-			ship.sp=1
-			ship.hidden=true
-		else
-			ship.sp=103
-			ship.hidden=false
-		end
-	end
-
-	-- if #enemies < 2 then
-	-- 	make_enemies(5)
-	-- end
-
-	-- if #stars < 19 thens
-	-- 	make_stars(10)
-	-- end	
-
-	if #items == 0 then
-		generate_items(0)
-		generate_items2(0)
-	end
-
-	if ship.hidden == true then
-		ship.w = 1
-		ship.h=1
-	end
-
-	if ship.hidden == false then
-		ship.w = 2
-		ship.h=2
-	end
-
-		bgposx = (bgposx+1)%64
-
-		for i in all(items) do
-		i.x -= 1
-		if i.x < 0 or i.x > 128 or
-			i.y < 0 or i.y > 128 then
-			del(items, i)
-		end
-	end 
-
-end --end of update function
-
-function _draw()
-	cls()
-	--scrolling background
-	map(screenx, screeny, -bgposx, cy, 32, 32)
-
-	--map(0,0,0,0,16,16)
-	
-	print(ship.health,9, 10, 3)
-	print(ship.score, 9, 18, 8)
-	-- print(mid.y, 9, 35, 1)
-	print(hidden_counter, 9, 45, 6)
-	-- print(screenx, 9, 65, 9)
-	-- print(screeny, 9, 80, 9)
-	-- print(ship.x, 9, 90, 10)
-
-	spr(ship.sp, ship.sx, ship.sy, ship.w, ship.w)
-	--spr(test_item.sp, test_item.x, test_item.y)
-
-	for b in all(bullets) do
-		spr(b.sp,b.x,b.y)
-	end
-	for eb in all(enemy_bullets) do
-		spr(eb.sp, eb.x, eb.y)
-	end
-	for e in all(enemies) do
-		spr(e.sp, e.x, e.y)
-	end
-	for s in all(stars) do
-		spr(s.sp, s.x, s.y)
-	end
-	for mid in all(mid_enemies) do
-		spr(mid.sp, mid.x, mid.y, 2, 2)
-	end
-	for i in all(items) do
-		spr(i.sp, i.x, i.y)
-	end
-
-	draw_debug()
-end
--------------------------------------------------------------------------------
---custom functions
--------------------------------------------------------------------------------
-function draw_debug()
-	mem = "mem:"..(flr((stat(0)/256)*32)).."k"
-	cpu = "cpu:"..(flr(stat(1)*100)).."%"
-	
-	print(cpu,9,25,7)
-	print(mem,9,35,7)
-end
-
---new function for characters
-function make_actor(x, y)
- a={}
- a.x = x
- a.y = y
- a.dx = 0
- a.dy = 0
- --a.spr = 16
- a.frame = 0
- a.t = 0
- a.inertia = 0.6
- a.bounce  = 1
- a.frames=2
- 
- a.w = 0.4
- a.h = 0.4
- 
- add(actor,a)
- 
- return a
-end
-
-function fire()
-	local b = {
-		sp=ship.weapon,
-		x=ship.x,
-		y=ship.y+5,
-		dx=-3,
-		box = {x1=2,y1=0,x2=5,y2=4}
-
-	}
-	add(bullets,b)
-end
-
-function alien_movement()
-	foreach(enemies, update_enemies)
-	foreach(mid_enemies, update_mids)
-end
-
-function enemy_fire()
-	for e in all(enemies) do
-	local b = {
-		sp=5,
-		x=e.x, 
-		y=e.y, 
-		dx=-3, 
-		box = {x1=2,y1=0,x2=5,y2=4}
-	}
-	add(enemy_bullets, b)
-	end
-end
-
-function star_movement()
-	foreach(stars, update_stars)
-end
-
-function spawn_basic_enemy()
-	alien = make_actor(flr(rnd(40)) + 64, flr(rnd(100)) )
-	alien.sp = 4
-	alien.tick = rndb(45,60)
-	alien.health = 2
-	alien.damaged = false
-	alien.flip = false
-	alien.dead = false
-	alien.box = {x1=0,y1=0,x2=7,y2=7}
-
-	add(enemies,alien)
-end
-
-function spawn_midlevel_enemy()
-	mid = make_actor(100, 40)
-	mid.sp = 36
-	mid.tick = rndb(45,60)
-
-	mid.box = {x1=0,y1=0,x2=7,y2=7}
-
-	add(mid_enemies, mid)
-end
-
-function make_enemies(num)
- for i=0,num do
-  spawn_basic_enemy()
- end
-end
-
-function update_enemies(e)
-	e.tick -=1
-	e.x -= 0.8
-
-	if e.tick<=0 then
-		if rnd() > 0.2 then
-			enemy_fire()
-		end
-	end
-end
-
-function update_mids(mid)
-	mid.counter = 0
-
-	mid.counter += 1
-end
-
----custom rng function
-function rndb(l,h)
-	return flr(rnd(h-l)+l)
-end
-
-function create_star()
-	star = {}
-	star.sp = 50
-	star.x = flr(rnd(128)) + 64
-	star.y = flr(rnd(128))
-
-	add(stars, star)
-end
-
-function make_stars(num)
-	for i=0,num do
-		create_star()
-	end
-end
-
-function update_stars(s)
-	s.x -= 2
-end
-
-function ship_hide_countdown()
-	if ship.hidden == true then
-		hidden_counter+=1
-	end
-
-	if hidden_counter >= 50 then
-		ship.hidden = false
-		hidden_counter = 0
-	end
-end
-
-function camera_level()
-	
-	ship.sx=ship.x%128
- 	ship.sy=ship.y%128
-
-	--free moving camera, unused
-
-		-- screenx=flr(ship.x/128)*16
- 	-- 	screeny=flr(ship.y/128)*16
-
-
- 	--move to other level
---  if ship.score < 10 then
---  	screenx=0
-
---  	screeny=0
--- end
-
--- if ship.score >= 10 then
---  	screenx=0
-
---  	screeny=16
--- 	end
-	
-end
-
---generic item making func
-function make_item(sp)
-	item={}
-	item.x=flr(rnd(128))
-	item.y=flr(rnd(128))
-
-	item.sp=sp
-
-	item.box = {x1=0,y1=0,x2=7,y2=7}
-
-	add(items, item)
-
-	return item
-end
-
-function generate_items(num)
-	for i=0, num do
-		make_item(13)
-	end
-end
-
-function generate_items2(num)
-	for i=0, num do
-		make_item(14)
-	end
-end
-
-function item_props(item)
-	if item.sp == 13 then
-		ship.health += 10
-	end
-	if item.sp == 14 then
-		ship.score += 1000
-	end
-	if item.sp == 29 then
-		ship.weapon = 29
-	end
-end
-
-----------------------------------------------------
---collision
-----------------------------------------------------
-function abs_box(s)
- local box = {}
- box.x1 = s.box.x1 + s.x
- box.y1 = s.box.y1 + s.y
- box.x2 = s.box.x2 + s.x
- box.y2 = s.box.y2 + s.y
- return box
-end
-
-function coll(a, b)
-	local box_a = abs_box(a)
- 	local box_b = abs_box(b)
-
- 	if box_a.x1 > box_b.x2 or
-    box_a.y1 > box_b.y2 or
-    box_b.x1 > box_a.x2	 or
-    box_b.y1 > box_a.y2 then
-    return false
- end
- 
- return true 
-end
-
+  t=t+1
+
+  update_player()
+  alien_movement()
+  star_movement()
+  ship_hide_countdown()
+  camera_level()
+  update_world()
+  update_items()
+  cls()
+
+  -- if #enemies < 2 then
+    -- 	make_enemies(5)
+    -- end
+
+    -- if #stars < 19 thens
+    -- 	make_stars(10)
+    -- end
+    if game_state == "select" then
+      poke(0x5f2c, 3)
+      draw_menu()
+    else
+      map(screenx, screeny, -bgposx, cy, 32, 32)
+    
+
+    spr(ship.sp, ship.sx, ship.sy, ship.w, ship.w)
+
+    for b in all(bullets) do
+      spr(b.sp,b.x,b.y)
+    end
+    for eb in all(enemy_bullets) do
+      spr(eb.sp, eb.x, eb.y)
+    end
+    for e in all(enemies) do
+      spr(e.sp, e.x, e.y)
+    end
+    for s in all(stars) do
+      spr(s.sp, s.x, s.y)
+    end
+    for mid in all(mid_enemies) do
+      spr(mid.sp, mid.x, mid.y, 2, 2)
+    end
+    for i in all(items) do
+      spr(i.sp, i.x, i.y)
+    end
+    bgposx = (bgposx+1)%64
+    draw_debug()
+   end
+   
+
+  end
+
+  function update_player()
+    if ship.hidden == true then
+      if(t%6<3) then
+        ship.sp=1
+      else
+        ship.sp=2
+      end
+
+    else
+      if(t%6<3) then
+        ship.sp=74
+      else
+        ship.sp=76
+      end
+    end
+
+    if btn(0) then
+      ship.x-=1.5
+    end
+    if btn(1) then
+      ship.x+=1.5
+      --shield.x += ship.speed
+    end
+    if btn(2) then
+      ship.y-=1.5
+
+      if ship.hidden==false then
+        ship.y-=1.8
+      end
+    end
+    if btn(3) then
+      if ship.hidden == false then
+        ship.sp = 103
+      end
+
+      ship.y+=1.7
+
+      if ship.hidden==false then
+        ship.y+=1.8
+      end
+    end
+    if btnp(4) then
+      fire()
+    end
+
+    if btnp(5) then
+
+      if ship.hidden==false then
+        ship.sp=1
+        ship.hidden=true
+      else
+        ship.sp=103
+        ship.hidden=false
+      end
+    end
+
+    if ship.hidden == true then
+      ship.w = 1
+      ship.h=1
+    end
+
+    if ship.hidden == false then
+      ship.w = 2
+      ship.h=2
+    end
+  end
+
+  function update_items()
+    if #items == 0 then
+      generate_items(0)
+      generate_items2(0)
+    end
+
+  end
+
+  function update_world()
+    for b in all(bullets) do
+      b.x-=b.dx
+      if b.x < 0 or b.x > 128 or
+      b.y < 0 or b.y > 128 then
+        del(bullets, b)
+      end
+
+      --destroy enemies
+      for e in all(enemies) do
+        if coll(b,e) then
+          del(enemies, e)
+          ship.score += 1
+        end
+      end
+    end
+
+    for eb in all(enemy_bullets) do
+      eb.x+=eb.dx
+      if eb.x < 0 or eb.x > 128 or
+      eb.y < 0 or eb.y > 128 then
+        del(enemy_bullets, eb)
+      end
+
+      if coll(eb,ship) then
+        if ship.shielded == false and ship.hidden == false then
+          ship.health -=1
+        end
+
+        if ship.shielded == true then
+          ship.health -=0.2
+        end
+
+        if ship.hidden == true then
+          ship.health -= 0
+        end
+      end
+
+      --enemies explode into lasers
+      --not sure if i still like this idea
+      for e in all(enemies) do
+        if coll(eb,e) then
+          del(enemies, e)
+        end
+      end
+    end
+    for e in all(enemies) do
+      if coll(ship, e) then
+        if ship.shielded == false and ship.hidden == false then
+          ship.health -=1
+        end
+      end
+
+      if ship.shielded == true then
+        ship.health -=0.2
+      end
+
+      if ship.hidden == true then
+        ship.health -=0
+      end
+    end
+    for i in all(items) do
+      if coll(i, ship) then
+        item_props(i)
+        del(items, i)
+      end
+    end
+
+    for e in all(enemies) do
+      if e.x < 0 or e.x > 128 or
+      e.y < 0 or e.y > 128 then
+        del(enemies, e)
+      end
+    end
+
+    for s in all(stars) do
+      if s.x < 0 or s.x > 128 or
+      s.y < 0 or s.y > 128 then
+        del(stars, s)
+      end
+    end
+    for i in all(items) do
+      i.x -= 1
+      if i.x < 0 or i.x > 128 or
+      i.y < 0 or i.y > 128 then
+        del(items, i)
+      end
+    end
+  end
+
+  function _draw()
+    -- if game_state == "select" then
+    --   poke(0x5f2c, 3)
+    --   draw_menu()
+    -- else
+    --   map(screenx, screeny, -bgposx, cy, 32, 32)
+    -- end
+    print(ship.health,9, 10, 3)
+    print(ship.score, 9, 18, 8)
+    -- print(mid.y, 9, 35, 1)
+    print(hidden_counter, 9, 45, 6)
+    -- print(screenx, 9, 65, 9)
+    --print(game_state, 9, 80, 9)
+    -- print(ship.x, 9, 90, 10)
+  end
+  -------------------------------------------------------------------------------
+  --custom functions
+  -------------------------------------------------------------------------------
+  function draw_debug()
+    mem = "mem:"..(flr((stat(0)/256)*32)).."k"
+    cpu = "cpu:"..(flr(stat(1)*100)).."%"
+
+    print(cpu,9,25,7)
+    print(mem,9,35,7)
+  end
+
+  --new function for characters
+  function make_actor(x, y)
+    a={}
+    a.x = x
+    a.y = y
+    a.dx = 0
+    a.dy = 0
+    --a.spr = 16
+    a.frame = 0
+    a.t = 0
+    a.inertia = 0.6
+    a.bounce  = 1
+    a.frames=2
+
+    a.w = 0.4
+    a.h = 0.4
+
+    add(actor,a)
+
+    return a
+  end
+
+  function fire()
+    local b = {
+      sp=ship.weapon,
+      x=ship.x,
+      y=ship.y+5,
+      dx=-3,
+      box = {x1=2,y1=0,x2=5,y2=4}
+
+    }
+    add(bullets,b)
+  end
+
+  function alien_movement()
+    foreach(enemies, update_enemies)
+    foreach(mid_enemies, update_mids)
+  end
+
+  function enemy_fire()
+    for e in all(enemies) do
+      local b = {
+        sp=5,
+        x=e.x,
+        y=e.y,
+        dx=-3,
+        box = {x1=2,y1=0,x2=5,y2=4}
+      }
+      add(enemy_bullets, b)
+    end
+  end
+
+  function star_movement()
+    foreach(stars, update_stars)
+  end
+
+  function spawn_basic_enemy()
+    alien = make_actor(flr(rnd(40)) + 64, flr(rnd(100)) )
+    alien.sp = 4
+    alien.tick = rndb(45,60)
+    alien.health = 2
+    alien.damaged = false
+    alien.flip = false
+    alien.dead = false
+    alien.box = {x1=0,y1=0,x2=7,y2=7}
+
+    add(enemies,alien)
+  end
+
+  function spawn_midlevel_enemy()
+    mid = make_actor(100, 40)
+    mid.sp = 36
+    mid.tick = rndb(45,60)
+
+    mid.box = {x1=0,y1=0,x2=7,y2=7}
+
+    add(mid_enemies, mid)
+  end
+
+  function make_enemies(num)
+    for i=0,num do
+      spawn_basic_enemy()
+    end
+  end
+
+  function update_enemies(e)
+    e.tick -=1
+    e.x -= 0.8
+
+    if e.tick<=0 then
+      if rnd() > 0.2 then
+        enemy_fire()
+      end
+    end
+  end
+
+  function update_mids(mid)
+    mid.counter = 0
+
+    mid.counter += 1
+  end
+
+  ---custom rng function
+  function rndb(l,h)
+    return flr(rnd(h-l)+l)
+  end
+
+  function create_star()
+    star = {}
+    star.sp = 50
+    star.x = flr(rnd(128)) + 64
+    star.y = flr(rnd(128))
+
+    add(stars, star)
+  end
+
+  function make_stars(num)
+    for i=0,num do
+      create_star()
+    end
+  end
+
+  function update_stars(s)
+    s.x -= 2
+  end
+
+  function ship_hide_countdown()
+    if ship.hidden == true then
+      hidden_counter+=1
+    end
+
+    if hidden_counter >= 50 then
+      ship.hidden = false
+      hidden_counter = 0
+    end
+  end
+
+  function camera_level()
+
+    ship.sx=ship.x%128
+    ship.sy=ship.y%128
+
+    --free moving camera, unused
+
+    -- screenx=flr(ship.x/128)*16
+    -- 	screeny=flr(ship.y/128)*16
+
+
+    --move to other level
+    --  if ship.score < 10 then
+      --  	screenx=0
+
+      --  	screeny=0
+      -- end
+
+      -- if ship.score >= 10 then
+        --  	screenx=0
+
+        --  	screeny=16
+        -- 	end
+
+      end
+
+      --generic item making func
+      function make_item(sp)
+        item={}
+        item.x=flr(rnd(128))
+        item.y=flr(rnd(128))
+
+        item.sp=sp
+
+        item.box = {x1=0,y1=0,x2=7,y2=7}
+
+        add(items, item)
+
+        return item
+      end
+
+      function generate_items(num)
+        for i=0, num do
+          make_item(13)
+        end
+      end
+
+      function generate_items2(num)
+        for i=0, num do
+          make_item(14)
+        end
+      end
+
+      function item_props(item)
+        if item.sp == 13 then
+          ship.health += 10
+        end
+        if item.sp == 14 then
+          ship.score += 1000
+        end
+        if item.sp == 29 then
+          ship.weapon = 29
+        end
+      end
+
+      function draw_menu()
+        menu.sp=201
+
+        menu_right={}
+        menu_right.x=30
+        menu_right.y=40
+
+        menu_left = {}
+        menu_left.x = 0
+        menu_left.y = 40
+
+        spr(menu.sp, menu_right.x, menu_right.y, 4, 4)
+        spr(menu.sp, menu_left.x, menu_left.y, 4, 4)
+      end
+
+      ----------------------------------------------------
+      --collision
+      ----------------------------------------------------
+      function abs_box(s)
+        local box = {}
+        box.x1 = s.box.x1 + s.x
+        box.y1 = s.box.y1 + s.y
+        box.x2 = s.box.x2 + s.x
+        box.y2 = s.box.y2 + s.y
+        return box
+      end
+
+      function coll(a, b)
+        local box_a = abs_box(a)
+        local box_b = abs_box(b)
+
+        if box_a.x1 > box_b.x2 or
+        box_a.y1 > box_b.y2 or
+        box_b.x1 > box_a.x2	 or
+        box_b.y1 > box_a.y2 then
+          return false
+        end
+
+        return true
+      end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000008800000000000000000000000000000000000000000000000
 00000000005220000052200000000000002222000000000000000000000000000888800000088082080800000000000000000000000000000000000000000000
@@ -605,38 +636,38 @@ __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-dddddddddddddd110ddddddddddddddd00000000000000001dd1111d11111111dddddddd00000000000000000000000000000000000000000000000000000000
-ddddddddddddd1111116dddddddddddd00000000000000001d11111111111111dddddddd00000000000000000000000000000000000000000000000000000000
-dddddddddddd61111111dddddddddddd00000000000000001111111111111111dddddddd00000000000000000000000000000000000000000000000000000000
-ddddddd6dddd111111111ddddddddddd000000000000000011111111dddddd111ddddddd00000000000000000000000000000000000000000000000000000000
-ddddddd1ddd111111111116ddddddddd000000000000000011111111ddddddd11ddddddd00000000000000000000000000000000000000000000000000000000
-ddddd1116111111111111111dddddddd000000000000000011111111ddddddd11ddd11dd00000000000000000000000000000000000000000000000000000000
-dddd11111111111111111111111ddddd000000000000000011111111dddddddd11d111dd00000000000000000000000000000000000000000000000000000000
-dd11111111111111111111111111dddd000000000000000011111111dddddddd11d1111d00000000000000000000000000000000000000000000000000000000
-111100001111111000001111111116dd000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-1111100011111111000011111111111d000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-11110000111111100001111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-11110000111111100011111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-11110000111111100011111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-11110000111111100011111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-10000000111110100111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-10000000111100001111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00011111111100001111111011100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000111110000001111111001110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000001110000001111110001111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000110000001111100000111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000110000001111100000111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000110000001111000000001100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000001111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000001110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-dddddddd1dd1111d1111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-dddddddd1d1111111111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-dddddddd111111111111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-1ddddddd11111111dddddd1111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-1ddddddd11111111ddddddd111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-1ddd11dd11111111ddddddd111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-11d111dd11111111dddddddd11111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-11d1111d11111111dddddddd11111d11000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+dddddddddddddd110ddddddddddddddd00000000000000001dd1111d11111111dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+ddddddddddddd1111116dddddddddddd00000000000000001d11111111111111dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+dddddddddddd61111111dddddddddddd00000000000000001111111111111111dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+ddddddd6dddd111111111ddddddddddd000000000000000011111111dddddd111ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+ddddddd1ddd111111111116ddddddddd000000000000000011111111ddddddd11ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+ddddd1116111111111111111dddddddd000000000000000011111111ddddddd11ddd11dddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+dddd11111111111111111111111ddddd000000000000000011111111dddddddd11d111dddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+dd11111111111111111111111111dddd000000000000000011111111dddddddd11d1111ddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+111100001111111000001111111116dd0000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+1111100011111111000011111111111d0000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+111100001111111000011111111111110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+111100001111111000111111111111110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+111100001111111000111111111111110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+111100001111111000111111111111110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+100000001111101001111111111111110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+100000001111000011111111111111110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+000111111111000011111110111000000000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+000001111100000011111110011100000000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+000000011100000011111100011110000000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+000000001100000011111000001110000000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+000000001100000011111000001111000000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+000000001100000011110000000011000000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+000000000000000011110000000000000000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+000000000000000011100000000000000000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+dddddddd1dd1111d11111111111111110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+dddddddd1d11111111111111111111110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+dddddddd1111111111111111111111110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+1ddddddd11111111dddddd11111111110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+1ddddddd11111111ddddddd1111111110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+1ddd11dd11111111ddddddd1111111110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+11d111dd11111111dddddddd111111110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+11d1111d11111111dddddddd11111d110000000000000000000000000000000000000000dddddddddddddddddddddddddddddddddddddddddddddddddddddddd
 __map__
 838383838383838383838383838383838383838383838383151515152b2b2b2b2b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 838383838383838383838383838383838383838383838383151515152b2b152b2b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
