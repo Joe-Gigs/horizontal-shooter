@@ -37,19 +37,15 @@ function _init()
 
 	roll_dice=false
 	
-	--make_enemies(0)
-
-	--make_stars(0)
-	--spawn_midlevel_enemy()
 
 		--time of temporary invincibility 
-		hidden_counter = 0
+	hidden_counter = 0
 
-		actor = {}
-		enemies={}
+	actor = {}
+	enemies={}
 
-		bgposx=0
-		gamespeed=1
+	bgposx=0
+	gamespeed=1
 end
 
 --todo: clean up this function, getting bloated :(
@@ -83,14 +79,6 @@ function _update()
 			eb.y < 0 or eb.y > 128 then
 			del(enemy_bullets, eb)
 		end
-
-	for i in all(items) do
-		i.x -= 1
-		if i.x < 0 or i.x > 128 or
-			i.y < 0 or i.y > 128 then
-			del(items, i)
-		end
-	end 
 
 		if coll(eb,ship) then
 			if ship.shielded == false and ship.hidden == false then
@@ -216,8 +204,8 @@ end
 	-- end	
 
 	if #items == 0 then
-		generate_items(5)
-		generate_items2(5)
+		generate_items(0)
+		generate_items2(0)
 	end
 
 	if ship.hidden == true then
@@ -230,11 +218,15 @@ end
 		ship.h=2
 	end
 
-bgposx = (bgposx+1)%64
+		bgposx = (bgposx+1)%64
 
-	-- for i in all(items) do 
-	-- 	i+=2
-	-- end
+		for i in all(items) do
+		i.x -= 1
+		if i.x < 0 or i.x > 128 or
+			i.y < 0 or i.y > 128 then
+			del(items, i)
+		end
+	end 
 
 end --end of update function
 
@@ -380,8 +372,8 @@ function update_enemies(e)
 	if e.tick<=0 then
 		if rnd() > 0.2 then
 			enemy_fire()
-			end
 		end
+	end
 end
 
 function update_mids(mid)
