@@ -41,7 +41,6 @@ function _init()
 
   roll_dice=false
 
-
   --time of temporary invincibility
   hidden_counter = 0
 
@@ -56,6 +55,11 @@ function _init()
 	cursor.sp = 8
 	cursor.x = 0
 	cursor.y = 40
+
+	green_eye={}
+	green_eye.sp=36
+	green_eye.x=100
+	green_eye.y=60
 end
 
 
@@ -71,6 +75,7 @@ function _update()
   camera_level()
   update_world()
   update_items()
+  enemy_ai(green_eye)
   cls()
 
   -- if #enemies < 2 then
@@ -99,7 +104,7 @@ function _update()
     pal()
 
     spr(ship.sp, ship.sx, ship.sy, ship.w, ship.w)
-
+    spr(green_eye.sp, green_eye.x, green_eye.y,2,4)
     for b in all(bullets) do
       spr(b.sp,b.x,b.y)
     end
@@ -358,7 +363,7 @@ function _update()
     foreach(mid_enemies, update_mids)
   end
 
-  function enemy_fire()
+  function basic_enemy_fire()
     for e in all(enemies) do
       local b = {
         sp=5,
@@ -409,7 +414,7 @@ function _update()
 
     if e.tick<=0 then
       if rnd() > 0.2 then
-        enemy_fire()
+        basic_enemy_fire()
       end
     end
   end
@@ -535,6 +540,24 @@ function _update()
         spr(menu.sp, menu_left.x, menu_left.y, 4, 4)
         spr()
       end
+
+      function enemy_ai(enemy)
+      	local b = {
+        sp=5,
+        x=enemy.x,
+        y=enemy.y,
+        dx=-3,
+        box = {x1=2,y1=0,x2=5,y2=4}
+      }
+      add(enemy_bullets, b)
+
+      enemy.tick-=1
+      if enemy.tick<=0 then 
+      	if rnd() >0.2 then
+      		
+      	end
+      end
+    end
 
       ----------------------------------------------------
       --collision
