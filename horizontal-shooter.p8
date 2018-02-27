@@ -8,7 +8,7 @@ t=0
 --p8 functions
 -------------------------------------------------------------------------------
 function _init()
-  game_state="select"
+  game_state="play"
   level="mountains"
 
   ship=make_actor(0, 60)
