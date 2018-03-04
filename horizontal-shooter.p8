@@ -1,13 +1,16 @@
 pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
---8
+--version 0.1
+--made by gigs
 t=0
 --start=true
 -------------------------------------------------------------------------------
 --p8 functions
 -------------------------------------------------------------------------------
 function _init()
+	w=128 -- width of the game map
+	h=128
   game_state="play"
   level="mountains"
 
@@ -22,6 +25,7 @@ function _init()
   ship.shielded=false
   ship.hidden=false
   ship.surfing=false
+  ship.cw=true
   ship.box={x1=0,y1=0,x2=7,y2=7}
 
   --camera values
@@ -59,11 +63,9 @@ function _init()
 	green_eye.sp=36
 	green_eye.x=100
 	green_eye.y=60
+	green_eye.cw=true
 end
 
-
---refactorig, will handle collisions/interaction between actors/assets
---looking good!
 function _update()
   t=t+1
   update_player()
@@ -128,12 +130,14 @@ function _update()
     draw_debug()
   	draw_player_stats()
 
-  	--coin_flip()
   	boss_ai(green_eye)
    end
   end
 
   function update_player()
+  local lx=ship.x
+ 	local ly=ship.y
+
     if ship.hidden == true then
       if(t%6<3) then
         ship.sp=1
@@ -202,6 +206,9 @@ function _update()
       ship.w = 2
       ship.h=2
     end
+
+    if(cmap(ship)) ship.x=lx ship.y=ly
+
   end
 
   function update_items()
@@ -311,6 +318,7 @@ function _update()
   -------------------------------------------------------------------------------
   --custom functions
   -------------------------------------------------------------------------------
+  --utility functions
   function coin_flip()
   	coin=flr(rnd(10))
   	if coin<0.5 then
@@ -320,6 +328,17 @@ function _update()
   	end
 	end
 
+ function interval()
+		local numb=flr(rnd(100))
+		print(numb, 9, 80, 4)
+		if numb % 5 == 1 then
+			return true
+		end
+		if numb % 3 == 2 then
+			return false
+		end
+	end
+--
   function draw_debug()
     mem = "mem:"..(flr((stat(0)/256)*32)).."k"
     cpu = "cpu:"..(flr(stat(1)*100)).."%"
@@ -419,6 +438,7 @@ function _update()
   end
 
   function update_enemies(e)
+  	
     e.tick -=1
     e.x -= 0.8
 
@@ -427,6 +447,8 @@ function _update()
         basic_enemy_fire()
       end
     end
+
+
   end
 
   -- function update_mids(mid)
@@ -562,30 +584,21 @@ function _update()
     	end
 
       function boss_ai(enemy)
+      	local lex = enemy.x 
+  			local ley = enemy.y
       		if coin_flip() == "heads" then
       			enemy_fire(enemy)
       		end
       		if interval() == true then
-      			enemy.y -= 1
+      			enemy.y -= 3.5
       		end
       		if interval() == false then
-    				enemy.y += 1
+    				enemy.y += 3.5
       		end
-      	end
-  
+      		if(cmap(enemy)) enemy.x=lex enemy.y=ley
 
-      function interval()
-				local numb=flr(rnd(100))
-				print(numb, 9, 80, 4)
-				if numb % 5 == 0 then
-					return true
-				end
-				if numb % 3 == 2 then
-					return false
-				end
-			end
-		
-      
+      	end
+
       ----------------------------------------------------
       --collision
       ----------------------------------------------------
@@ -611,6 +624,32 @@ function _update()
 
         return true
       end
+
+  function cmap(entity)
+	  local ct=false
+	  local cb=false
+
+	  -- if colliding with map tiles
+	  if(entity.cm) then
+	    local x1=entity.x/8
+	    local y1=entity.y/8
+	    local x2=(entity.x+7)/8
+	    local y2=(entity.y+7)/8
+	    local a=fget(mget(x1,y1),0)
+	    local b=fget(mget(x1,y2),0)
+	    local c=fget(mget(x2,y2),0)
+	    local d=fget(mget(x2,y1),0)
+	    ct=a or b or c or d
+	   end
+	   -- if colliding world bounds
+	   if(entity.cw) then
+	     cb=(entity.x<0 or entity.x+8>w or
+	           entity.y<0 or entity.y+8>h)
+	   end
+
+	  return ct or cb
+end
+
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000008800000000000000000000000000000000000000000000000
 00000000006600000066000000000000002222000000000000000000000000000888800000088082080800000000000000000000000000000000000000000000
