@@ -60,11 +60,8 @@ function _init()
 	cursor.x = 0
 	cursor.y = 40
 
-	green_eye={}
-	green_eye.sp=36
-	green_eye.x=100
-	green_eye.y=60
-	green_eye.cw=true
+
+	spawn_midlevel_enemy(100, 60, 36)
 end
 
 function _update()
@@ -76,7 +73,6 @@ function _update()
   camera_level()
   update_world()
   update_items()
-  -- boss_ai(green_eye)
   cls()
 
   -- if #enemies < 2 then
@@ -86,6 +82,7 @@ function _update()
     -- if #stars < 19 thens
     -- 	make_stars(10)
     -- end
+    
     if game_state == "select" then
       poke(0x5f2c, 3)
       draw_menu()
@@ -105,7 +102,7 @@ function _update()
     pal()
 
     spr(ship.sp, ship.sx, ship.sy, ship.w, ship.w)
-    spr(green_eye.sp, green_eye.x, green_eye.y,2,4)
+    --spr(green_eye.sp, green_eye.x, green_eye.y,2,4)
 
     for b in all(bullets) do
       spr(b.sp,b.x,b.y)
@@ -130,8 +127,9 @@ function _update()
   	
     draw_debug()
   	draw_player_stats()
-
-  	boss_ai(green_eye)
+  	--make_mids(0)
+  	mid_ai()
+  	
    end
   end
 
@@ -242,6 +240,12 @@ function _update()
           ship.score += 1
         end
       end
+
+    	for mid in all(mid_enemies) do
+    		if coll(b,mid) then
+    			mid.health-=10
+    		end
+    	end
     end
 
     for eb in all(enemy_bullets) do
@@ -254,7 +258,7 @@ function _update()
 
       if coll(eb,ship) then
         if ship.shielded == false and ship.hidden == false then
-          ship.health -=1
+          ship.health -=10
         end
 
         if ship.shielded == true then
@@ -423,14 +427,18 @@ function _update()
     add(enemies,alien)
   end
 
-  function spawn_midlevel_enemy()
-    mid = make_actor(100, 40)
-    mid.sp = 36
+
+  function spawn_midlevel_enemy(x,y,sp)
+    mid = make_actor(x, y)
+    mid.sp = sp
     mid.tick = rndb(45,60)
+    mid.health=100
     mid.box = {x1=0,y1=0,x2=7,y2=7}
 
     add(mid_enemies, mid)
   end
+
+
 
   function make_enemies(num)
     for i=0,num do
@@ -451,12 +459,6 @@ function _update()
 
 
   end
-
-  -- function update_mids(mid)
-  --   mid.counter = 0
-
-  --   mid.counter += 1
-  -- end
 
   ---custom rng function
   function rndb(l,h)
@@ -584,21 +586,27 @@ function _update()
       add(enemy_bullets, b)
     	end
 
-      function boss_ai(enemy)
-      	local lex = enemy.x 
-  			local ley = enemy.y
+      function mid_ai()
+      	for m in all(mid_enemies) do
+      		m.y = ship.y
+      	local lex = m.x 
+  			local ley = m.y
       		if coin_flip() == "heads" then
-      			enemy_fire(enemy)
+      			enemy_fire(m)
       		end
       		if interval() == true then
-      			enemy.y -= 3.5
+      			m.y -= 3.5
       		end
       		if interval() == false then
-    				enemy.y += 3.5
+    				m.y += 3.5
       		end
-      		if(cmap(enemy)) enemy.x=lex enemy.y=ley
-
-      	end
+      		if(cmap(m)) m.x=lex m.y=ley
+      		
+      		if mid.health == 0 then
+      			del(mid_enemies, m)
+    			end
+    		end
+    	end
 
       ----------------------------------------------------
       --collision
@@ -653,11 +661,11 @@ end
 
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000008800000000000000000000000000000000000000000000000
-00000000006600000066000000000000002222000000000000000000000000000888800000088082080800000000000000000000000000000000000000000000
-0070070000666600006666000000000000602200000000000000000000000888ee00288882820820008280000000000000000000000000000000000000000000
-00077000a066cc660a66cc6600000000000022000000000000000000000888ee00000000088200000000000000000000000000000088880000aaaa0000000000
-000770000a66cc66a066cc6600bbbb000022220000aaaa00000000002888ee00000dddd0028880088800000000000000000000000088880000aaaa0000000000
-007007000066660000666600000000000000000000000000000000000000000000222ddd82288888208080000000000000000000000000000000000000000000
+00000000006600000066000000000000002222000000000000000000000000000888800000088082080800000000000000000000008080000000000000000000
+0070070000666600006666000000000000602200000000000000000000000888ee00288882820820008280000000000000000000088888000000000000000000
+00077000a066cc660a66cc6600000000000022000000000000000000000888ee00000000088200000000000000000000000000000888880000aaaa0000000000
+000770000a66cc66a066cc6600bbbb000022220000aaaa00000000002888ee00000dddd0028880088800000000000000000000000088800000aaaa0000000000
+007007000066660000666600000000000000000000000000000000000000000000222ddd82288888208080000000000000000000000800000000000000000000
 0000000000660000006600000000000000000000000000000000000000000000022222ddd8288200000820000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000e02222dd2888080800000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000002222dd2888828000000000000000000000000000000000000000000000000
