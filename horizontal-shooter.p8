@@ -61,6 +61,8 @@ function _init()
 	cursor.x = 0
 	cursor.y = 40
 
+	anim_playing=false
+
 	--spawn_midlevel_enemy(100, 60, 36)
 end
 
@@ -229,7 +231,11 @@ function _update()
 
   function update_world()
     for b in all(bullets) do
-      b.x-=b.dx
+    	if anim_playing == true then
+    		b.x-=0
+    	else
+      	b.x-=b.dx
+    	end
       if b.x < 0 or b.x > 128 or
       b.y < 0 or b.y > 128 then
         del(bullets, b)
@@ -319,7 +325,7 @@ function _update()
   end
 
   function _draw()
-    -- print(interval(), 9, 65, 9)
+    print(anim_playing, 9, 65, 9)
     -- print(flr(ship.y), 9, 100, 7)
   end
   -------------------------------------------------------------------------------
@@ -397,6 +403,8 @@ function _update()
 
     if ship.current_weapon == 171 then
     	animation(160,171)
+    	anim_playing=true
+   
     end
   end
 
@@ -625,7 +633,7 @@ function _update()
 
 			function animation(low,high)
 			for b in all(bullets) do
-			 if b.sp>high then 
+			 if b.sp==high then 
 			 	b.sp=low 
 			 else 
 			 	b.sp+=1 
