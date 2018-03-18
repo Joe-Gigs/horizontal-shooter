@@ -13,6 +13,7 @@ t=0
 --New weapons
 --A useful purpose for the hide mechanic
 --Menu system
+--work on art style--
 -------------------------------------------------------------------------------
 --p8 functions
 -------------------------------------------------------------------------------
@@ -23,7 +24,7 @@ function _init()
 	--level="mountains"
 
 	ship=make_actor(0, 60)
-	ship.sp=96
+	--ship.sp=96
 	ship.w=2
 	ship.h=2
 	ship.speed=0.8
@@ -70,11 +71,9 @@ function _init()
 	cursor.x = -2
 	cursor.y = 40
 
-	--anim_playing=false
+	--spawn_midlevel_enemy(100, 60, 36)
 
-	button=btn(4)
-
-	spawn_midlevel_enemy(100, 60, 36)
+	menuitem(1,"return to menu", function() game_state = "select" end )
 end
 
 function _update()
@@ -87,10 +86,9 @@ function _update()
 	update_world()
 	update_items()
 	movecursor()
-	cls()
 	ship_props()
 	menu_input()
-
+	cls()
 	-- if #enemies < 2 then
 	--   	make_enemies(5)
 	--   end
@@ -100,7 +98,7 @@ function _update()
 		-- end
 		
 		if game_state == "select" then
-			poke(0x5f2c, 3)
+			--poke(0x5f2c, 3)
 			draw_menu()
 		elseif game_state == "play" then
 			map(screenx, screeny, -bgposx, cy, 32, 32)
@@ -153,20 +151,20 @@ function _update()
 	local lx=ship.x
 	local ly=ship.y
 
-		if ship.hidden == true then
-			if(t%6<3) then
-				ship.sp=1
-			else
-				ship.sp=2
-			end
+		-- if ship.hidden == true then
+		-- 	if(t%6<3) then
+		-- 		ship.sp=1
+		-- 	else
+		-- 		ship.sp=2
+		-- 	end
 
-		else
-			if(t%6<3) then
-				ship.sp=96
-			else
-				ship.sp=98
-			end
-		end
+		-- else
+		-- 	if(t%6<3) then
+		-- 		ship.sp=96
+		-- 	else
+		-- 		ship.sp=98
+		-- 	end
+		-- end
 
 		if btn(0) then
 			ship.x-=1.5
@@ -184,7 +182,7 @@ function _update()
 		end
 		if btn(3) then
 			if ship.hidden == false then
-				ship.sp = 100
+				--ship.sp = 100
 			end
 
 			ship.y+=1.7
@@ -192,12 +190,7 @@ function _update()
 			if ship.hidden==false then
 				ship.y+=1.8
 			end
-
-			-- if ship.surfing==true then
-			-- 	shadow=32
-			-- end
 		end
-
 
 		if btnp(4) then
 			fire()
@@ -205,13 +198,13 @@ function _update()
 
 		if btnp(5) then
 
-			if ship.hidden==false then
-				ship.sp=1
-				ship.hidden=true
-			else
-				ship.sp=103
-				ship.hidden=false
-			end
+			-- if ship.hidden==false then
+			-- 	ship.sp=1
+			-- 	ship.hidden=true
+			-- else
+			-- 	ship.sp=103
+			-- 	ship.hidden=false
+			-- end
 		end
 
 		if ship.hidden == true then
@@ -234,13 +227,12 @@ function _update()
 	   generate_items2(0)
 		end
 
-			for i in all(items) do
-				if coll(i, ship) then
-					item_props(i)
-					del(items, i)
-				end
+		for i in all(items) do
+			if coll(i, ship) then
+				item_props(i)
+				del(items, i)
+			end
 		end
-
 	end
 
 	function update_world()
@@ -338,6 +330,7 @@ function _update()
 	function _draw()
 		print(menu.level, 20, 120, 9)
 		print(ship.type, 9, 65, 9)
+		print(ship.sp, 9, 80, 9)
 		print(cursor.x, 9, 100, 7)
 		print(cursor.y, 9, 120, 3)
 	end
@@ -356,7 +349,7 @@ function _update()
 
  function interval()
 		local numb=flr(rnd(100))
-		print(numb, 9, 80, 4)
+		--print(numb, 9, 80, 4)
 		if numb % 5 == 1 then
 			return true
 		end
@@ -379,7 +372,6 @@ function _update()
 		print(hidden_counter, 9, 45, 8)
 	end
 
-	--new function for characters
 	function make_actor(x, y)
 		a={}
 		a.x = x
@@ -399,6 +391,10 @@ function _update()
 		add(actor,a)
 
 		return a
+	end
+
+	function render_ship()
+
 	end
 
 	function fire()
@@ -468,6 +464,13 @@ function _update()
 		add(mid_enemies, mid)
 	end
 
+	function spawn_zombie_fish(x,y,sp)
+		fish = make_actor
+		fish.sp=sp
+		fish.health=100
+		fish.box={x1=0,y1=0,x2=7,y2=7}
+	end
+
 	function make_enemies(num)
 		for i=0,num do
 			spawn_basic_enemy()
@@ -529,8 +532,7 @@ function _update()
 		--free moving camera, unused
 
 		-- screenx=flr(ship.x/128)*16
-		-- 	screeny=flr(ship.y/128)*16
-
+		-- screeny=flr(ship.y/128)*16
 
 		--move to other level
 
@@ -547,120 +549,122 @@ function _update()
 
 		end
 
-			--generic item making func
-			function make_item(sp,x,y)
-				item={}
-				item.sp=sp
-				item.x=x
-				item.y=y
-				item.box = {x1=0,y1=0,x2=7,y2=7}
+	function make_item(sp,x,y)
+		item={}
+		item.sp=sp
+		item.x=x
+		item.y=y
+		item.box = {x1=0,y1=0,x2=7,y2=7}
 
-				add(items, item)
+		add(items, item)
 
-				return item
+		return item
+	end
+
+	function generate_items(num)
+		for i=0, num do
+			make_item(13, flr(rnd(128)), flr(rnd(128)))
+		end
+	end
+
+	function generate_items2(num)
+		for i=0, num do
+			make_item(14, flr(rnd(128)), flr(rnd(128)))
+		end
+	end
+
+	function ship_waves()
+		local wave = 18
+
+		if(t%6<3) then
+			wave=18
+		else
+			wave=19
+		end
+		make_item(wave,ship.x,ship.y+10)
+	end
+
+	function item_props(item)
+		if item.sp == 13 then
+			ship.score+=10
+			ship.health += 10
+		end
+		if item.sp == 14 then
+			ship.current_weapon = 171
+			ship.score+=50
+		end
+	end
+
+	function draw_menu()
+		menu.sp=201
+
+		menu_right={}
+		menu_right.x=30
+		menu_right.y=40
+
+		menu_left = {}
+		menu_left.x = 0
+		menu_left.y = 40
+
+		action=false
+
+		menuposx = cursor.x
+		menuposy = cursor.y
+
+		spr(menu.sp, menu_right.x, menu_right.y, 4, 4)
+		spr(menu.sp, menu_left.x, menu_left.y, 4, 4)
+		spr(cursor.sp,cursor.x,cursor.y)
+
+		if menu.level == 0 then
+			print("ship 1", 3, 42, 2)
+			print("ship 2",3,48,2)
+			print("ship 3", 3, 54, 4)
+		end	
+		if menu.level == 1 then
+			print("are you sure?", 3, 42, 2)
+			print("yes", 4, 53, 1)
+			print("no", 35, 53, 1)
+		end
+	end
+
+	function enemy_fire(enemy)
+		local b = {
+		sp=5,
+		x=enemy.x-4,
+		y=enemy.y+4,
+		dx=-3,
+		box = {x1=2,y1=0,x2=5,y2=4}
+		
+	}
+	add(enemy_bullets, b)
+	end
+
+	function mid_ai()
+		for m in all(mid_enemies) do
+			m.y = ship.y
+		local lex = m.x 
+		local ley = m.y
+			if coin_flip() == "heads" then
+				enemy_fire(m)
 			end
-
-			function generate_items(num)
-				for i=0, num do
-					make_item(13, flr(rnd(128)), flr(rnd(128)))
-				end
+			if interval() == true then
+				m.y -= 3.5
 			end
-
-			function generate_items2(num)
-				for i=0, num do
-					make_item(14, flr(rnd(128)), flr(rnd(128)))
-				end
+			if interval() == false then
+				m.y += 3.5
 			end
-
-			function ship_waves()
-				local wave = 18
-
-				if(t%6<3) then
-					wave=18
-				else
-					wave=19
-				end
-				make_item(wave,ship.x,ship.y+10)
-			end
-
-			function item_props(item)
-				if item.sp == 13 then
-					ship.score+=10
-					ship.health += 10
-				end
-				if item.sp == 14 then
-					ship.current_weapon = 171
-					ship.score+=50
-				end
-			end
-
-			function draw_menu()
-				menu.sp=201
-
-				menu_right={}
-				menu_right.x=30
-				menu_right.y=40
-
-				menu_left = {}
-				menu_left.x = 0
-				menu_left.y = 40
-
-				action=false
-
-				menuposx = cursor.x
-				menuposy = cursor.y
-
-				spr(menu.sp, menu_right.x, menu_right.y, 4, 4)
-				spr(menu.sp, menu_left.x, menu_left.y, 4, 4)
-				spr(cursor.sp,cursor.x,cursor.y)
-
-				if menu.level == 0 then
-					print("ship 1", 3, 42, 2)
-					print("ship 2",3,48,2)
-					print("ship 3", 3, 54, 4)
-				end	
-				if menu.level == 1 then
-					print("are you sure?", 3, 42, 2)
-					----------------------------------------------
-					print("yes", 4, 53, 1)
-					print("no", 35, 53, 1)
-				end
-			end
-
-			function enemy_fire(enemy)
-				local b = {
-				sp=5,
-				x=enemy.x-4,
-				y=enemy.y+4,
-				dx=-3,
-				box = {x1=2,y1=0,x2=5,y2=4}
-				
-			}
-			add(enemy_bullets, b)
-			end
-
-			function mid_ai()
-				for m in all(mid_enemies) do
-					m.y = ship.y
-				local lex = m.x 
-				local ley = m.y
-					if coin_flip() == "heads" then
-						enemy_fire(m)
-					end
-					if interval() == true then
-						m.y -= 3.5
-					end
-					if interval() == false then
-						m.y += 3.5
-					end
-					if(cmap(m)) m.x=lex m.y=ley
-					
-					if mid.health == 0 then
-						del(mid_enemies, m)
-					end
-				end
-			end
+			if(cmap(m)) m.x=lex m.y=ley
 			
+			if mid.health == 0 then
+				del(mid_enemies, m)
+			end
+
+			end
+		end
+
+		-- function fish_ai()
+		-- 	local 
+		-- end
 
 		function animation(low,high)
 			for b in all(bullets) do
@@ -679,6 +683,9 @@ function _update()
 		function ship_props()
 			if ship.sp == 96 then
 				ship.type="ship 1"
+			end
+			if ship.sp == 104 then
+				ship.type="ship 2"
 			end
 		end
 
@@ -706,12 +713,22 @@ function _update()
 				if menu.level == 0 then
 					if menuposx == -2 and menuposy == 40 then
 						menu.level=1
+						ship.sp=96
+					end
+					if menuposx == -2 and menuposy == 46 then
+						menu.level=1
+						ship.sp=104
 					end
 				end
+					--confirm
 				if menu.level == 1 then
 					if menuposx == -2 and menuposy == 52 then
 						game_state = "play"
+						menu.level=0
+						cursor.x = -2
+						cursor.y = 40
 					end
+					--cancel 
 					if menuposx == 28 and menuposy == 52 then
 						menu.level = 0
 					end
@@ -725,28 +742,28 @@ function _update()
 			----------------------------------------------------
 			--collision
 			----------------------------------------------------
-			function abs_box(s)
-				local box = {}
-				box.x1 = s.box.x1 + s.x
-				box.y1 = s.box.y1 + s.y
-				box.x2 = s.box.x2 + s.x
-				box.y2 = s.box.y2 + s.y
-				return box
-			end
+	function abs_box(s)
+		local box = {}
+		box.x1 = s.box.x1 + s.x
+		box.y1 = s.box.y1 + s.y
+		box.x2 = s.box.x2 + s.x
+		box.y2 = s.box.y2 + s.y
+		return box
+	end
 
-			function coll(a, b)
-				local box_a = abs_box(a)
-				local box_b = abs_box(b)
+	function coll(a, b)
+		local box_a = abs_box(a)
+		local box_b = abs_box(b)
 
-				if box_a.x1 > box_b.x2 or
-				box_a.y1 > box_b.y2 or
-				box_b.x1 > box_a.x2	 or
-				box_b.y1 > box_a.y2 then
-					return false
-				end
+		if box_a.x1 > box_b.x2 or
+		box_a.y1 > box_b.y2 or
+		box_b.x1 > box_a.x2	 or
+		box_b.y1 > box_a.y2 then
+			return false
+		end
 
-				return true
-			end
+		return true
+	end
 
 	function cmap(entity)
 		local ct=false
