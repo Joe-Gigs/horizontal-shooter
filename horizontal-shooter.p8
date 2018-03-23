@@ -5,14 +5,14 @@ __lua__
 --made by gigs
 
 t=0
---Version 0.1.1 Roadmap (First public release)
+--version 0.1.1 roadmap (first public release)
 
---At least two ships to choose from
---At least 4(possibly more) levels for the player to explore
+--at least two ships to choose from DONE
+--at least 4(possibly more) levels for the player to explore
 --improved ai, more enemy variety 
---New weapons
---A useful purpose for the hide mechanic
---Menu system
+--new weapons IN PROGRESS
+--a useful purpose for the hide mechanic
+--menu system IN PROGRESS
 --work on art style--
 -------------------------------------------------------------------------------
 --p8 functions
@@ -111,7 +111,7 @@ function _update()
 			ship.surfing=true
 			spr(shadow, ship.x-1, ship.y+10)
 		elseif ship.y >= 95 then
-			ship_waves()
+			ship_waves()	
 		else
 			ship.surfing=false
 		end
@@ -143,7 +143,7 @@ function _update()
 		
 		draw_debug()
 		draw_player_stats()
-		--make_mids(0)
+		--make_mid_enemies(0)
 		mid_ai()
 	 end
 	end
@@ -151,21 +151,23 @@ function _update()
 	function update_player()
 	local lx=ship.x
 	local ly=ship.y
--------------------------------------
-		-- if ship.hidden == true then
-		-- 	if(t%6<3) then
-		-- 		ship.sp=1
-		-- 	else
-		-- 		ship.sp=2
-		-- 	end
+-------------------------------------exhaust animation
+if ship.type=="ship 1" then
+		if ship.hidden == true then
+			if(t%6<3) then
+				ship.sp=1
+			else
+				ship.sp=2
+			end
 
-		-- else
-		-- 	if(t%6<3) then
-		-- 		ship.sp=96
-		-- 	else
-		-- 		ship.sp=98
-		-- 	end
-		-- end
+		else
+			if(t%6<3) then
+				ship.sp=96
+			else
+				ship.sp=98
+			end
+		end
+	end
 ----------------------------------------
 		if btn(0) then
 			ship.x-=1.5
@@ -198,12 +200,19 @@ function _update()
 		end
 
 		if btnp(5) then
-
+			
 			if ship.hidden==false then
 				ship.sp=1
 				ship.hidden=true
 			else
-				ship.sp=96
+				--hacky af but it will do
+				if ship.type=="ship 1" then
+
+					ship.sp=96 
+				elseif ship.type=="ship 2" then
+					ship.sp=104
+
+				end
 				ship.hidden=false
 			end
 		end
@@ -331,7 +340,7 @@ function _update()
 	end
 
 	function _draw()
-		-- print(#enemy_bullets, 20, 120, 9)
+		print(ship.sp, 20, 120, 9)
 		-- print(ship.type, 20, 30, 9)
 		-- print(#enemies, 9, 80, 11)
 		-- print(cursor.x, 9, 100, 7)
@@ -482,11 +491,11 @@ function _update()
 		end
 	end
 
-	-- function make_mid_enemies(num)
-	-- 	for i=0,num do
-	-- 		spawn_midlevel_enemy(100, 60, 36)
-	-- 	end
-	-- end
+	function make_mid_enemies(num)
+		for i=0,num do
+			spawn_midlevel_enemy(100, 60, 36)
+		end
+	end
 
 	function update_enemies(e)
 		e.tick -=1
@@ -551,11 +560,11 @@ function _update()
 				screeny=16
 			end
 
-			if ship.score >= 100 then
-				screenx=24
+			-- if ship.score >= 100 then
+			-- 	screenx=24
 
-				screeny=0
-			end
+			-- 	screeny=0
+			-- end
 
 		end
 
