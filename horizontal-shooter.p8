@@ -5,7 +5,7 @@ __lua__
 --made by gigs
 
 t=0
---version 0.1.1 roadmap (first public release)
+--version 0.1.2 roadmap (first public release)
 
 --at least two ships to choose from done
 --at least 4(possibly more) levels for the player to explore
@@ -373,8 +373,8 @@ function _update()
 	end
 
 	function _draw()
-		print(ship.sp, 20, 120, 9)
-		--print(freeze_items, 20, 30, 9)
+		--print(ship.sp, 20, 120, 9)
+		
 		-- print(#enemies, 9, 80, 11)
 		-- print(cursor.x, 9, 100, 7)
 		-- print(cursor.y, 9, 120, 3)
@@ -702,7 +702,7 @@ function _update()
 			e.y = ship.y
 		local lex = e.x 
 		local ley = e.y
-			if coin_flip() == "heads"  and e.is_alive == true then
+			if coin_flip() == "heads" and e.alive == true then
 				enemy_fire(e)
 			end
 			if interval() == true then
@@ -715,7 +715,7 @@ function _update()
 			
 			if e.health == 0 then
 				del(mid_enemies, e)
-				e.is_alive = false
+				e.alive = false
 			end
 	end
 		--end
