@@ -1,18 +1,15 @@
 pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
---version: 0.1(alpha)
 --made by gigs
 
 t=0
---version 0.1.2 roadmap (first public release)
+--version 0.1.3 updated 6/15/18
 
---at least two ships to choose from done
 --at least 4(possibly more) levels for the player to explore
---improved ai, more enemy variety 
+--improved ai, more enemy variety IN PROGRESS
 --new weapons in progress
 --a useful purpose for the hide mechanic
---menu system in progress
 --work on art style--
 -------------------------------------------------------------------------------
 --p8 functions
@@ -76,6 +73,7 @@ function _init()
 	--spawn_zombie_fish(100, 60, 42)
 
 	menuitem(1,"return to menu", function() game_state = "select" end )
+
 end
 
 function _update()
@@ -152,6 +150,7 @@ function _update()
 		--make_mid_enemies(0)
 		mid_ai(green_eye)
 	 end
+	 ship_preview_menu()
 	end
 
 	function update_player()
@@ -364,11 +363,10 @@ function _update()
 	end
 
 	function _draw()
-		--print(ship.sp, 20, 120, 9)
-		
+		-- print(menu.level, 50, 0, 9)
 		-- print(#enemies, 9, 80, 11)
-		-- print(cursor.x, 9, 100, 7)
-		-- print(cursor.y, 9, 120, 3)
+		-- print(cursor.x, 0, 10, 7)
+		-- print(cursor.y, 20, 10, 3)
 	end
 	-------------------------------------------------------------------------------
 	--custom functions
@@ -447,7 +445,7 @@ function _update()
 		add(bullets,b)
 
 		if ship.current_weapon == 6 then
-			animation(6,9)
+		--
 		end
 	 
 	end
@@ -614,10 +612,12 @@ function _update()
 	end
 
 	function item_props(item)
+		--heart
 		if item.sp == 13 then
 			ship.score+=10
 			ship.health += 10
 		end
+		--yellow bar
 		if item.sp == 14 then
 			ship.current_weapon = 6
 			ship.score+=50
@@ -648,9 +648,9 @@ function _update()
 		spr(cursor.sp,cursor.x,cursor.y)
 
 		if menu.level == 0 then
-			print("ship 1", 3, 42, 2)
-			print("ship 2",3,48,2)
-			print("ship 3", 3, 54, 4)
+			print("ship 1", 3, 42, 12)
+			print("ship 2",3, 48, 12)
+			print("ship 3", 3, 54, 8)
 		end	
 		if menu.level == 1 then
 			print("are you sure?", 3, 42, 2)
@@ -702,18 +702,14 @@ function _update()
 		-- 	local 
 		-- end
 
-		function animation(low,high)
-			for b in all(bullets) do
-			 if b.sp==high then 
-				b.sp=low 
-			 else 
-				b.sp+=1 
-				end
-			 end
-		end
-
-		function weapon_props()
-
+-----------------------------------testing differnt animation function
+		function set_anim(t, anim)
+			if t.anim ~= anim then
+				t.anim = anim
+				t.anim_t = 2
+				t.frame = 1
+				t.spr = anim[1]
+			end
 		end
 
 		function ship_props()
@@ -779,9 +775,17 @@ function _update()
 			end
 		end
 
-		-- function hidden_timer()
-			
-		-- end
+		function ship_preview_menu()
+			if game_state == "select" then
+				if menu.level == 0 and cursor.y == 40 then
+						spr(96, 17, 10, 2, 2)
+					end
+					if menu.level == 0 and cursor.y == 46 then
+						spr(64, 17, 10, 2, 2)
+					end
+				end
+		end
+		
 
 			----------------------------------------------------
 			--collision
