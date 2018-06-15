@@ -198,7 +198,6 @@ function _update()
 		end
 	end
 
-	
 ----------------------------------------
 		if btn(0) then
 			ship.x-=1.5
@@ -691,6 +690,7 @@ function _update()
 		x=enemy.x-4,
 		y=enemy.y+4,
 		dx=-3,
+		dy=-rnd(1),
 		box = {x1=2,y1=0,x2=5,y2=4}
 		
 	}
@@ -699,18 +699,21 @@ function _update()
 
 	function mid_ai(e)
 		--for m in all(mid_enemies) do
-			e.y = ship.y
+
+		if interval() == true then
+			e.y = ship.y + rnd(2)
+		end
+		if interval() == false then
+
+			e.y = ship.y - rnd(3)
+		end
+
 		local lex = e.x 
 		local ley = e.y
 			if coin_flip() == "heads" and e.alive == true then
 				enemy_fire(e)
 			end
-			if interval() == true then
-				e.y -= 3.5
-			end
-			if interval() == false then
-				e.y += 3.5
-			end
+
 			if(cmap(e)) e.x=lex e.y=ley
 			
 			if e.health == 0 then
