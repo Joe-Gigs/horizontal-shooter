@@ -19,6 +19,7 @@ function _init()
 	h=128
 	game_state="select"
 	freeze_items = false
+	freeze_enemies = false
 	--level="mountains"
 
 	ship=make_actor(0, 60)
@@ -90,9 +91,9 @@ function _update()
 	menu_input()
 	cls()
 
-		-- if #enemies < 2 then
-	 --  	make_enemies(5)
-	 --  end
+		if #enemies < 1 then
+	  	make_enemies(0)
+	  end
 
 		-- if #stars < 19 thens
 		-- 	make_stars(10)
@@ -101,10 +102,12 @@ function _update()
 			poke(0x5f2c, 3)
 			draw_menu()
 			freeze_items = true
+			freeze_enemies = true
 		elseif game_state == "play" then
 			map(screenx, screeny, -bgposx, cy, 32, 32)
 			poke(0x5f2c, 0)
 			freeze_items = false
+			freeze_enemies = false
 
 		--ship shadow
 		pal(1,0)
@@ -369,8 +372,8 @@ function _update()
 	end --end update world function
 
 	function _draw()
-		-- print(menu.level, 50, 0, 9)
-		-- print(#enemies, 9, 80, 11)
+		print(alien.x, 9, 49, 8)
+		print(alien.y, 9, 80, 9)
 		-- print(cursor.x, 0, 10, 7)
 		-- print(cursor.y, 20, 10, 3)
 	end
@@ -461,7 +464,7 @@ function _update()
 	end
 
 	function spawn_basic_enemy()
-		alien = make_actor(flr(rnd(64)) + 100, flr(rnd(128)) )
+		alien = make_actor(flr(rnd(120)) + 100, flr(rnd(100) ))
 		alien.sp = 4
 		alien.tick = rndb(45,60)
 		alien.health = 2
@@ -508,12 +511,16 @@ function _update()
 	end
 
 	function update_enemies(e)
-		e.tick -=1
-		e.x -= 1
+		e.tick = rndb(45,60)
 
-		if e.tick<=0 then
+		if e.tick%2 == 1 then
 			if coin_flip() == "heads" then
 				enemy_fire(e)
+			end
+		end
+		if freeze_enemies == false then
+			if e.tick%3 == 1 then
+				e.x -= 2
 			end
 		end
 	end
@@ -664,7 +671,7 @@ function _update()
 		local b = {
 		sp=5,
 		x=enemy.x-4,
-		y=enemy.y+4,
+		y=enemy.y+1,
 		dx=-3,
 		dy=-rnd(1),
 		box = {x1=2,y1=0,x2=5,y2=4}
@@ -674,8 +681,6 @@ function _update()
 	end
 
 	function mid_ai(e)
-		--for m in all(mid_enemies) do
-
 		if interval() == true then
 			e.y = ship.y + rnd(2)
 		end
@@ -697,7 +702,6 @@ function _update()
 		-- function fish_ai()
 		-- 	local 
 		-- end
-
 
 -----------------------------------testing differnt animation function
 		function set_anim(t, anim)
